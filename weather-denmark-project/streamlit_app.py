@@ -2,13 +2,28 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-
+import tarfile
+import urllib.request
+import io
 
 # =========================
-# LOAD & PREPARE DATA
+# LOAD DATA
 # =========================
-df = pd.read_csv("https://raw.githubusercontent.com/Hvass-Labs/weather-denmark/master/weather-denmark.csv")
+url = "https://github.com/Hvass-Labs/weather-denmark/raw/master/weather-denmark.tar.gz"
 
+# download file from url and read csv from tar.gz without saving to disk
+response = urllib.request.urlopen(url)
+file_like_object = io.BytesIO(response.read())
+
+with tarfile.open(fileobj=file_like_object, mode="r:gz") as tar:
+
+    csv_file = tar.extractfile("weather-denmark.csv")
+
+    df = pd.read_csv(csv_file)
+
+# =========================
+# PREPARE DATA
+# =========================
 df["DateTime"] = pd.to_datetime(df["DateTime"])
 df["hour"] = df["DateTime"].dt.hour
 

@@ -6,14 +6,21 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
+import tarfile
+import urllib.request
+import io
 
 # =========================
 # 1. LOAD DATA
 # =========================
-df = pd.read_csv("https://raw.githubusercontent.com/Hvass-Labs/weather-denmark/master/weather-denmark.csv")
+url = "https://github.com/Hvass-Labs/weather-denmark/raw/master/weather-denmark.tar.gz"
 
-print(df.head())
-print(df.columns)
+response = urllib.request.urlopen(url)
+file_like_object = io.BytesIO(response.read())
+
+with tarfile.open(fileobj=file_like_object, mode="r:gz") as tar:
+    csv_file = tar.extractfile("weather-denmark.csv")
+    df = pd.read_csv(csv_file)
 
 
 # =========================
@@ -38,7 +45,6 @@ df["heat_demand"] = (
     25 
     - df["Temp"] 
     + 0.5 * df["WindSpeed"] 
-    + np.random.normal(0, 2, len(df))
 )
 
 # Remove missing values
@@ -66,7 +72,7 @@ plt.show()
 # =========================
 
 # Features and target
-X = df[["Temp", "WindSpeed"]]
+X = df[["Temp", "WindSpeed", "hour"]]
 y = df["heat_demand"]
 
 # Train/test split
